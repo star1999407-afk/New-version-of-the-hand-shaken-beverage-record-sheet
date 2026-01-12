@@ -263,7 +263,7 @@
                                 <div class="space-y-2">
                                     <p class="text-[10px] font-black text-[#3E2723] uppercase tracking-wider">冰量調配 / Ice</p>
                                     <div class="option-grid">
-                                        ${["去冰", "微冰", "少冰", "少冰", "全冰", "熱", "常溫", "無法調整"].map(o => `
+                                        ${["去冰", "微冰", "少冰", "碎冰", "正常冰", "熱", "常溫", "無法調整"].map(o => `
                                             <button onclick="setOption('ice', '${o}')" class="h-10 rounded-xl text-[10px] font-black border transition-all ${currentIce === o ? 'bg-[#3E2723] text-white border-[#3E2723]' : 'bg-white text-stone-600 border-stone-200'}">${o}</button>
                                         `).join('')}
                                     </div>
