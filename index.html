@@ -388,11 +388,36 @@
                                 const day = i + 1;
                                 const dStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
                                 const count = records.filter(r => r.date === dStr).length;
-                                let bgColor = 'bg-stone-50', textColor = 'text-stone-300';
-                                if(count === 1) { bgColor = 'bg-[#D7CCC8]'; textColor = 'text-[#3E2723]'; }
-                                else if(count >= 2) { bgColor = 'bg-[#3E2723]'; textColor = 'text-white'; }
-                                return `<div class="aspect-square flex flex-col items-center justify-center rounded-xl md:rounded-2xl text-xs md:text-base font-black border ${bgColor} ${textColor} border-stone-100 shadow-sm transition-all active:scale-95"><span>${day}</span>${count > 0 ? `<span class="text-[8px] md:text-[10px] mt-0.5 font-black">${count}劑</span>` : ''}</div>`;
+                                
+                                // 色彩層次邏輯
+                                let bgColor = 'bg-stone-50';
+                                let textColor = 'text-stone-300';
+                                
+                                if (count === 1) {
+                                    bgColor = 'bg-[#D7CCC8]'; // 淺褐 (1劑)
+                                    textColor = 'text-[#3E2723]';
+                                } else if (count === 2) {
+                                    bgColor = 'bg-[#A1887F]'; // 中褐 (2劑)
+                                    textColor = 'text-white';
+                                } else if (count === 3) {
+                                    bgColor = 'bg-[#4E342E]'; // 深褐 (3劑)
+                                    textColor = 'text-white';
+                                } else if (count >= 4) {
+                                    bgColor = 'bg-red-700'; // 亮紅 (4劑以上警告)
+                                    textColor = 'text-white';
+                                }
+
+                                return `<div class="aspect-square flex flex-col items-center justify-center rounded-xl md:rounded-2xl text-xs md:text-base font-black border ${bgColor} ${textColor} border-stone-100 shadow-sm transition-all active:scale-95">
+                                    <span>${day}</span>
+                                    ${count > 0 ? `<span class="text-[8px] md:text-[10px] mt-0.5 font-black">${count}劑</span>` : ''}
+                                </div>`;
                             }).join('')}
+                        </div>
+                        <div class="mt-8 flex justify-center gap-4 text-[9px] font-black text-stone-400">
+                            <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#D7CCC8] rounded-sm"></div>1劑</div>
+                            <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#A1887F] rounded-sm"></div>2劑</div>
+                            <div class="flex items-center gap-1"><div class="w-3 h-3 bg-[#4E342E] rounded-sm"></div>3劑</div>
+                            <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-700 rounded-sm"></div>4劑+</div>
                         </div>
                     </div>`;
             } else if (activeTab === 'statistics') {
