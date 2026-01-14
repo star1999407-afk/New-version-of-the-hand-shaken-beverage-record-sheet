@@ -39,6 +39,20 @@
             100% { transform: translateY(105vh) rotate(720deg) translateX(var(--drift)); opacity: 0; }
         }
 
+        #sponsor-field {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transform: scale(0.95);
+        }
+        #sponsor-field.show {
+            max-height: 120px;
+            opacity: 1;
+            margin-top: 1rem;
+            transform: scale(1);
+        }
+
         .active-tab { color: white !important; }
         .active-tab i { transform: scale(1.1); stroke-width: 3; }
 
@@ -136,7 +150,6 @@
         }
 
         function saveRecords() {
-            // 在儲存前進行排序：日期由新到舊 (大到小)
             records.sort((a, b) => new Date(b.date) - new Date(a.date));
             localStorage.setItem('drink_records', JSON.stringify(records));
             render();
@@ -145,9 +158,9 @@
         function exportToCSV() {
             if (records.length === 0) { alert("目前沒有病例紀錄可以匯出"); return; }
             let csvContent = "\uFEFF";
-            csvContent += "日期,診療所(店家),藥劑(飲品),診察費,冰量,糖分,環保杯,健保申報\n";
+            csvContent += "日期,診療所(店家),藥劑(飲品),診察費,冰量,糖分,環保杯,健保申報,贊助人\n";
             records.forEach(r => {
-                let row = [r.date, r.shop, r.drink, r.cost, r.ice, r.sugar, r.eco ? "是" : "否", r.insurance ? "是" : "否"].join(",");
+                let row = [r.date, r.shop, r.drink, r.cost, r.ice, r.sugar, r.eco ? "是" : "否", r.insurance ? "是" : "否", r.sponsor || ""].join(",");
                 csvContent += row + "\n";
             });
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -285,13 +298,23 @@
                                         </div>
                                     </div>
                                     <div class="space-y-2">
-                                        <p class="text-[10px] font-black text-[#3E2723] uppercase">健保申報</p>
+                                        <p class="text-[10px] font-black text-[#3E2723] uppercase">健保申報 (有人請客)</p>
                                         <div class="flex gap-2">
                                             <button onclick="setOption('ins', true)" class="flex-1 py-2 rounded-xl text-[10px] font-black border ${currentIns ? 'bg-blue-700 text-white border-blue-700' : 'bg-white text-stone-400 border-stone-200'}">有</button>
                                             <button onclick="setOption('ins', false)" class="flex-1 py-2 rounded-xl text-[10px] font-black border ${!currentIns ? 'bg-stone-500 text-white border-stone-500' : 'bg-white text-stone-400 border-stone-200'}">無</button>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div id="sponsor-field" class="${currentIns ? 'show' : ''}">
+                                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                                        <p class="text-[10px] font-black text-blue-800 uppercase mb-2 flex items-center gap-1">
+                                            <i data-lucide="gift" size="12"></i> 贊助人姓名 / Sponsor Name
+                                        </p>
+                                        <input type="text" id="input-sponsor" value="${isEditing ? (data.sponsor || '') : ''}" placeholder="是誰請客的呢？" class="w-full bg-white border border-blue-200 p-3 rounded-xl font-bold text-sm outline-none shadow-sm focus:ring-2 focus:ring-blue-400" />
+                                    </div>
+                                </div>
+
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-stone-100">
                                     <div class="space-y-1.5">
                                         <p class="text-[10px] font-black text-[#3E2723] uppercase">診療所 / Clinic</p>
@@ -303,8 +326,9 @@
                                     </div>
                                 </div>
                                 <div class="space-y-1.5">
-                                    <p class="text-[10px] font-black text-[#3E2723] uppercase">診察費 / Fee</p>
+                                    <p class="text-[10px] font-black text-[#3E2723] uppercase">${currentIns ? '診察費 (贊助金額)' : '診察費 / Fee'}</p>
                                     <input type="number" id="input-cost" value="${isEditing ? data.cost : ''}" placeholder="NT$" class="w-full bg-stone-50 border border-stone-200 p-3 rounded-xl font-bold text-sm outline-none shadow-inner" />
+                                    ${currentIns ? '<p class="text-[9px] text-blue-600 font-bold mt-1 tracking-wider">* 健保案件金額將紀錄為贊助，不計入個人年度支出</p>' : ''}
                                 </div>
                                 <div class="flex gap-3">
                                     ${isEditing ? `<button onclick="cancelEdit()" class="flex-1 bg-stone-100 text-stone-600 py-4 rounded-2xl font-black text-lg active:scale-95 transition-all">取消</button>` : ''}
@@ -325,13 +349,20 @@
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="text-[9px] font-black text-white bg-[#3E2723] px-2 py-0.5 rounded uppercase">${r.date}</span>
                                         ${r.eco ? '<span class="flex items-center gap-0.5 text-[8px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100"><i data-lucide="leaf" size="8"></i>環保杯</span>' : ''}
-                                        ${r.insurance ? '<span class="flex items-center gap-0.5 text-[8px] font-black text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100"><i data-lucide="shield-check" size="8"></i>健保</span>' : ''}
+                                        ${r.insurance ? `<span class="flex items-center gap-0.5 text-[8px] font-black text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100"><i data-lucide="gift" size="8"></i>${r.sponsor || '贊助'}</span>` : ''}
                                     </div>
                                     <h4 class="font-black text-[#3E2723] text-base">${r.shop}</h4>
                                     <p class="text-xs font-bold text-stone-500">${r.drink} · ${r.sugar} · ${r.ice}</p>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-xl font-black text-[#3E2723] mr-2">${r.insurance ? 'FREE' : '$'+r.cost}</span>
+                                    <div class="flex flex-col items-end mr-2">
+                                        ${r.insurance ? `
+                                            <span class="text-[10px] font-black text-blue-500 uppercase tracking-tighter">FREE</span>
+                                            <span class="text-sm font-black text-blue-400">($${r.cost})</span>
+                                        ` : `
+                                            <span class="text-xl font-black text-[#3E2723]">$${r.cost}</span>
+                                        `}
+                                    </div>
                                     <div class="flex gap-1">
                                         <button onclick="editRecord(${i})" class="p-2 text-stone-300 hover:text-amber-600 transition-colors"><i data-lucide="pencil" size="18"></i></button>
                                         <button onclick="deleteRecord(${i})" class="p-2 text-red-200 hover:text-red-600 transition-colors"><i data-lucide="trash-2" size="18"></i></button>
@@ -457,21 +488,54 @@
             setTimeout(() => {
                 const datePicker = document.getElementById('input-date');
                 if(datePicker) datePicker.value = currentDate;
+                const sponsorField = document.getElementById('sponsor-field');
+                if (sponsorField && currentIns) sponsorField.classList.add('show');
             }, 10);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function cancelEdit() { editingIndex = null; resetFormState(); render(); }
         function deleteRecord(index) { if(confirm('確定要刪除這筆病例紀錄嗎？')) { records.splice(index, 1); saveRecords(); } }
-        function setOption(t, v) { if(t === 'ice') currentIce = v; if(t === 'sugar') currentSugar = v; if(t === 'eco') currentEco = v; if(t === 'ins') currentIns = v; render(); }
+        
+        function setOption(t, v) { 
+            if(t === 'ice') currentIce = v; 
+            if(t === 'sugar') currentSugar = v; 
+            if(t === 'eco') currentEco = v; 
+            if(t === 'ins') {
+                currentIns = v;
+                const sponsorField = document.getElementById('sponsor-field');
+                if (sponsorField) {
+                    if (v) sponsorField.classList.add('show');
+                    else sponsorField.classList.remove('show');
+                }
+            }
+            render(); 
+        }
 
         function saveCurrentRecord() {
-            const shop = document.getElementById('input-shop').value.trim(), drink = document.getElementById('input-drink').value.trim(), cost = document.getElementById('input-cost').value || 0;
+            const shop = document.getElementById('input-shop').value.trim();
+            const drink = document.getElementById('input-drink').value.trim();
+            const costInput = document.getElementById('input-cost');
+            const cost = costInput ? (costInput.value || 0) : 0;
+            const sponsor = currentIns ? document.getElementById('input-sponsor').value.trim() : "";
+
             if(!shop || !drink) { alert('請完整填寫診療所與藥劑名稱'); return; }
+            
             spawnSnowEffect();
-            const newRecord = { date: currentDate, shop, drink, cost: parseInt(cost), ice: currentIce, sugar: currentSugar, eco: currentEco, insurance: currentIns };
+            const newRecord = { 
+                date: currentDate, 
+                shop, drink, 
+                cost: parseInt(cost), 
+                ice: currentIce, 
+                sugar: currentSugar, 
+                eco: currentEco, 
+                insurance: currentIns,
+                sponsor: sponsor
+            };
+
             setTimeout(() => {
-                if(editingIndex !== null) { records[editingIndex] = newRecord; editingIndex = null; } else { records.push(newRecord); }
+                if(editingIndex !== null) { records[editingIndex] = newRecord; editingIndex = null; } 
+                else { records.push(newRecord); }
                 saveRecords(); 
                 resetFormState(); 
                 switchTab('history');
